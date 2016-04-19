@@ -1,0 +1,44 @@
+{
+  "name": "azure-functions",
+  "version": "1.0.0",
+  "description": "A node client library for Azure Functions",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sedouard/azure-functions-node.git"
+  },
+  "keywords": [
+    "Azure",
+    "Functions",
+    "Lambda",
+    "Azure",
+    "Kudu",
+    "Azure",
+    "Webapps",
+    "Websites"
+  ],
+  "author": "sedouard",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sedouard/azure-functions-node/issues"
+  },
+  "homepage": "https://github.com/sedouard/azure-functions-node#readme",
+  "dependencies": {
+    "azure-arm-resource": "^1.4.1-preview",
+    "bluebird": "^3.3.5",
+    "debug": "^2.2.0",
+    "ms-rest": "^1.12.0",
+    "ms-rest-azure": "^1.12.0",
+    "skeemas": "^1.2.2"
+  },
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-jshint": "^1.0.0",
+    "grunt-jscs": "^2.8.0",
+    "grunt-mocha": "^1.0.1",
+    "nconf": "^0.8.4"
+  }
+}
