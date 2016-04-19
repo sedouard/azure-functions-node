@@ -1,0 +1,235 @@
+'use strict';
+var util = require('util');
+var debug = require('debug')('azure-functions:azure-functions');
+var msRest = require('ms-rest');
+var WebResource = msRest.WebResource;
+var msRestAzure = require('ms-rest-azure');
+var resourceManagement = require('azure-arm-resource');
+const BbPromise = require('bluebird');
+
+/**
+ * AzureFunctions Allows for easy interaction for manipulating Azure Functions
+ *
+ * @@class
+ */
+class AzureFunctions {
+    /**
+     * Creates an instance of AzureFunctions
+     *
+     * @constructor
+     * @this {AzureFunctions}
+     * @param {object} [subscriptionDetails]
+     * @param {object} [subscriptionDetails.subscriptionId] Azure Subscription Id
+     * @param {object} [subscriptionDetails.clientId] Service Principal Client Id
+     * @param {object} [subscriptionDetails.clientId] Service Principal Client Secret
+     * @param {object} [subscriptionDetails.domain] Azure Active Directory Domain (eg: yourapp.com)
+     */
+    constructor(resourceGroupName, functionAppName, subscriptionDetails) {
+        debug(subscriptionDetails);
+        this.resourceGroupName = resourceGroupName;
+        this._subscriptionDetails = subscriptionDetails;
+        this.functionAppName = functionAppName;
+        this.subscriptionDetails = subscriptionDetails;
+        this._credentials = new msRestAzure.ApplicationTokenCredentials(subscriptionDetails.clientId,
+            subscriptionDetails.domain,
+            subscriptionDetails.clientSecret);
+        this._rmClient = BbPromise.promisifyAll(
+            new resourceManagement.ResourceManagementClient(this._credentials,
+                subscriptionDetails.subscriptionId), {
+                multiArgs: true
+            });
+        this._rmClient.apiVersion = '2015-08-01';
+    }
+
+    /**
+     * Gets all Azure Functions in the function app
+     *
+     * @method
+     * @return {array} An array of Function objects.
+     */
+    listFunctions() {
+        var requestUrl = this._buildBaseUrl();
+        requestUrl = requestUrl + '/providers/Microsoft.Web/sites/' + this.functionAppName + '/functions';
+
+        return this._performRequest(requestUrl)
+            .then(functionListing => {
+                return functionListing.value;
+            });
+    }
+
+    /**
+     * Gets an Azure Function
+     *
+     * @method
+     * @param {string} name The name of the function
+     * @return {array} Ann array of Function objects.
+     */
+    getFunction(name) {
+        var requestUrl = this._buildBaseUrl();
+        requestUrl = requestUrl + '/providers/Microsoft.Web/sites/' + this.functionAppName + '/functions/' + name;
+
+        return this._performRequest(requestUrl)
+            .then(functionListing => {
+                return functionListing;
+            });
+    }
+
+    /**
+     * Deploys a Function to the Functions App
+     *
+     * @method
+     * @param {string} name The name of the function to deploy
+     * @param {string} functionContent The code that defines the function logic
+     * @param {obejct} binding The Azure Function bindings
+     * @return {null}
+     */
+    deployFunction(name, functionContent, bindings) {
+
+        return this._performRequest(this._buildBaseUrl(), 'GET', null, '2016-02-01')
+            .then(group => {
+                var requestUrl = this._buildBaseUrl();
+                requestUrl = requestUrl + '/providers/Microsoft.Web/sites/' + this.functionAppName + '/functions/' + name;
+
+                if (!Array.isArray(bindings)) {
+                    throw new Error('bindings must be an array');
+                }
+                return this._performRequest(requestUrl, 'PUT', {
+                    location: group.location,
+                    properties: {
+                        config: {
+                            bindings: bindings
+                        },
+                        files: {
+                            'index.js': functionContent
+                        }
+                    }
+                });
+            });
+    }
+
+    /**
+     * Deletes a Function from the Functions App
+     *
+     * @method
+     * @param {string} name The name of the function to delete
+     * @return {null}
+     */
+    deleteFunction(name) {
+        var requestUrl = this._buildBaseUrl();
+        requestUrl = requestUrl + '/providers/Microsoft.Web/sites/' + this.functionAppName + '/functions/' + name;
+
+        return this._performRequest(requestUrl, 'DELETE')
+            .then(functionListing => {
+                return functionListing;
+            });
+    }
+
+    _buildBaseUrl() {
+        var requestUrl = this._rmClient.baseUri + '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}';
+        requestUrl = requestUrl.replace('{subscriptionId}', this.subscriptionDetails.subscriptionId);
+        requestUrl = requestUrl.replace('{resourceGroupName}', this.resourceGroupName);
+        return requestUrl;
+    }
+
+    _performRequest(requestUrl, method, body, apiVersion) {
+        if (!method) {
+            method = 'GET';
+        }
+
+        var httpRequest = new WebResource();
+        var client = this._rmClient;
+        httpRequest.method = method;
+        httpRequest.headers = {};
+        if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
+            if (body.constructor.name === 'ReadStream') {
+                httpRequest.body = body;
+            } else {
+                httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+                httpRequest.body = JSON.stringify(body);
+            }
+
+        } else {
+            httpRequest.body = null;
+        }
+        httpRequest.headers['x-ms-client-request-id'] = msRestAzure.generateUuid();
+
+        var queryParameters = [];
+        queryParameters.push('api-version=' + encodeURIComponent(apiVersion || client.apiVersion));
+
+        if (queryParameters.length > 0) {
+            requestUrl += '?' + queryParameters.join('&');
+        }
+        // trim all duplicate forward slashes in the url
+        var regex = /([^:]\/)\/+/gi;
+        requestUrl = requestUrl.replace(regex, '$1');
+
+        httpRequest.url = requestUrl;
+        // this logic is mostly from the Azure auto-rest generated code
+        return new Promise((resolve, reject) => {
+            return client.pipeline(httpRequest, function (err, response, responseBody) {
+                debug(err);
+                debug(response);
+                debug(responseBody);
+                var statusCode = response.statusCode;
+                debug(err);
+                debug(response);
+                debug(responseBody);
+                if (statusCode < 200 || statusCode > 299) {
+
+                    var error = new Error(responseBody);
+                    error.statusCode = response.statusCode;
+                    error.request = msRest.stripRequest(httpRequest);
+                    error.response = msRest.stripResponse(response);
+                    if (responseBody === '') {
+                        responseBody = null;
+                    }
+                    var parsedErrorResponse;
+                    try {
+                        parsedErrorResponse = JSON.parse(responseBody);
+                        if (parsedErrorResponse) {
+                            if (parsedErrorResponse.error) {
+                                parsedErrorResponse = parsedErrorResponse.error;
+                            }
+                            if (parsedErrorResponse.code) {
+                                error.code = parsedErrorResponse.code;
+                            }
+                            if (parsedErrorResponse.message) {
+                                error.message = parsedErrorResponse.message;
+                            }
+                        }
+                        if (parsedErrorResponse !== null && parsedErrorResponse !== undefined) {
+                            var resultMapper = new client.models.CloudError().mapper();
+                            error.body = client.deserialize(resultMapper, parsedErrorResponse, 'error.body');
+                        }
+                    } catch (defaultError) {
+                        error.message = util.format('Error \'%s\' occurred in deserializing the responseBody ' +
+                            '- \'%s\' for the default response.', defaultError.message, responseBody);
+                        return reject(error);
+                    }
+                    return reject(error);
+                }
+                // Create Result
+                var result = null;
+                if (responseBody === '') {
+                    responseBody = null;
+                }
+
+                if (statusCode === 200) {
+                    var parsedResponse = null;
+                    try {
+                        parsedResponse = JSON.parse(responseBody);
+                        result = JSON.parse(responseBody);
+                    } catch (error) {
+                        var deserializationError = new Error(util.format('Error \'%s\' occurred in deserializing the responseBody - \'%s\'', error, responseBody));
+                        deserializationError.request = msRest.stripRequest(httpRequest);
+                        deserializationError.response = msRest.stripResponse(response);
+                        return reject(deserializationError);
+                    }
+                }
+                return resolve(result);
+            });
+        });
+    }
+}
+
+module.exports = AzureFunctions;

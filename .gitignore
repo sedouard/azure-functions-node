@@ -1,0 +1,4 @@
+.config-live.json
+node_modules
+.vscode
+.DS_STORE
