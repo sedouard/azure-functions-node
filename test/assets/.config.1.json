@@ -1,0 +1,8 @@
+{
+	"CLIENT_ID": "daafda92-9eee-4275-913a-249717d1de1c",
+	"CLIENT_SECRET": "C1F4CFC3-1085-4F99-B38E-1F5CAECB777A",
+	"SUBSCRIPTION_ID": "04f7ec88-8e28-41ed-8537-5e17766001f5",
+	"AD_DOMAIN": "microsoft.com",
+	"RESOURCE_GROUP_NAME": "AzureFunctions-WestUS",
+	"FUNCTION_APP_NAME": "serverlessdemo"
+}

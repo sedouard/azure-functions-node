@@ -29,7 +29,9 @@
   "dependencies": {
     "azure-arm-resource": "^1.4.1-preview",
     "bluebird": "^3.3.5",
+    "clone": "^1.0.2",
     "debug": "^2.2.0",
+    "guid": "0.0.12",
     "ms-rest": "^1.12.0",
     "ms-rest-azure": "^1.12.0",
     "skeemas": "^1.2.2"
@@ -37,8 +39,13 @@
   "devDependencies": {
     "grunt": "^1.0.1",
     "grunt-contrib-jshint": "^1.0.0",
+    "grunt-jsbeautifier": "^0.2.12",
     "grunt-jscs": "^2.8.0",
     "grunt-mocha": "^1.0.1",
+    "grunt-mocha-cli": "^2.1.0",
+    "guid": "0.0.12",
+    "load-grunt-tasks": "^3.5.0",
+    "mockery": "^1.6.2",
     "nconf": "^0.8.4"
   }
 }

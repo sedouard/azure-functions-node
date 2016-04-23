@@ -1,97 +1,157 @@
 'use strict';
-/* globals describe, it, before*/
+/* globals describe, it*/
+var fs = require('fs');
 var nconf = require('nconf');
+var assert = require('assert');
 var debug = require('debug')('azure-functions:test:live:azure-functions');
-nconf.env().file({file: './test/live/.config.json'});
+var skeemas = require('skeemas');
+var clone = require('clone');
+var functionSchema = require('../schemas/function');
+var functionListingSchema = require('../schemas/function-listing');
+
+nconf.env().file({
+    file: './test/assets/.config-live.json'
+});
 global.Promise = require('bluebird');
 
-describe('provider:aws', function () {
+function validateFunctionObject(func) {
+    var result = skeemas.validate(func, functionSchema);
+    assert(result.valid, JSON.stringify(result.errors));
+}
 
-  var email;
+function validateFunctionListing(func) {
+    var result = skeemas.validate(func, functionListingSchema);
+    assert(result.valid, JSON.stringify(result.errors));
+}
 
-  describe('#listFunctionsLive', function () {
-    this.timeout(10000);
-    it('lists Azure Functions', function () {
-      var AzureFunctions = require('../../index');
-      var azFunctions = new AzureFunctions(nconf.get('RESOURCE_GROUP_NAME'),
-      	nconf.get('FUNCTION_APP_NAME'),
-      	{
-      		subscriptionId: nconf.get('SUBSCRIPTION_ID'),
-          clientId: nconf.get('CLIENT_ID'),
-          clientSecret: nconf.get('CLIENT_SECRET'),
-          domain: nconf.get('AD_DOMAIN')
-      	});
+describe('azure-functions', function () {
 
-      return azFunctions.listFunctions()
-      .then((functions) => {
-        debug(functions);
-      });
+    var sampleFunction = fs.readFileSync('./test/assets/samplefunction', {
+        encoding: 'utf8'
     });
-  });
-  
-  describe('#getFunctionLive', function () {
-    this.timeout(10000);
-    it('gets an Azure Function', function () {
-      var AzureFunctions = require('../../index');
-      var azFunctions = new AzureFunctions(nconf.get('RESOURCE_GROUP_NAME'),
-      nconf.get('FUNCTION_APP_NAME'),
-      {
-        subscriptionId: nconf.get('SUBSCRIPTION_ID'),
-        clientId: nconf.get('CLIENT_ID'),
-        clientSecret: nconf.get('CLIENT_SECRET'),
-        domain: nconf.get('AD_DOMAIN')
-      });
+    var sampleFunctionNames = ['unittesthttp', 'unittesthttp2'];
 
-      return azFunctions.getFunction('HttpTriggerNodeJS1')
-      .then(func => {
-        debug(func);
-      });
-    });
-  });
-  
-  describe('#deleteFunctionLive', function () {
-    this.timeout(10000);
-    it('deletes an Azure Function', function () {
-      var AzureFunctions = require('../../index');
-      var azFunctions = new AzureFunctions(nconf.get('RESOURCE_GROUP_NAME'),
-      	nconf.get('FUNCTION_APP_NAME'),
-      	{
-      		subscriptionId: nconf.get('SUBSCRIPTION_ID'),
-          clientId: nconf.get('CLIENT_ID'),
-          clientSecret: nconf.get('CLIENT_SECRET'),
-          domain: nconf.get('AD_DOMAIN')
-      	});
+    describe('#CRUD', function () {
+        this.timeout(360000);
+        it('#deployfunction-http-live', function () {
+            var AzureFunctions = require('../../index');
+            var azFunctions = new AzureFunctions(nconf.get('RESOURCE_GROUP_NAME'),
+                nconf.get('FUNCTION_APP_NAME'), {
+                    subscriptionId: nconf.get('SUBSCRIPTION_ID'),
+                    clientId: nconf.get('CLIENT_ID'),
+                    clientSecret: nconf.get('CLIENT_SECRET'),
+                    domain: nconf.get('AD_DOMAIN')
+                });
+            return azFunctions.deployFunction(sampleFunctionNames[0], sampleFunction, [{
+                    type: 'http',
+                    direction: 'in',
+                    name: 'req'
+                }])
+                .then(func => {
+                    debug(func);
+                    validateFunctionObject(func);
+                });
+        });
 
-        return azFunctions.deleteFunction('HttpTriggerNodeJS2')
-        .then(func => {
-          debug(func);
+        it('#deployFunction-http2-live', function () {
+            var AzureFunctions = require('../../index');
+            var azFunctions = new AzureFunctions(nconf.get('RESOURCE_GROUP_NAME'),
+                nconf.get('FUNCTION_APP_NAME'), {
+                    subscriptionId: nconf.get('SUBSCRIPTION_ID'),
+                    clientId: nconf.get('CLIENT_ID'),
+                    clientSecret: nconf.get('CLIENT_SECRET'),
+                    domain: nconf.get('AD_DOMAIN')
+                });
+
+            return azFunctions.deployFunction(sampleFunctionNames[1], sampleFunction, [{
+                    type: 'http',
+                    direction: 'in',
+                    name: 'req'
+                }])
+                .then(func => {
+                    debug(func);
+                    validateFunctionObject(func);
+                });
+        });
+
+        it('#listFunctions-live', function () {
+            var AzureFunctions = require('../../index');
+            var azFunctions = new AzureFunctions(nconf.get('RESOURCE_GROUP_NAME'),
+                nconf.get('FUNCTION_APP_NAME'), {
+                    subscriptionId: nconf.get('SUBSCRIPTION_ID'),
+                    clientId: nconf.get('CLIENT_ID'),
+                    clientSecret: nconf.get('CLIENT_SECRET'),
+                    domain: nconf.get('AD_DOMAIN')
+                });
+
+            return azFunctions.listFunctions()
+                .then(functions => {
+                    debug(functions);
+                    validateFunctionListing(functions);
+                    var funcNames = clone(sampleFunctionNames);
+                    functions.forEach(func => {
+                        var found = false;
+                        funcNames.every((name, index) => {
+                            if (name === func.name.replace(nconf.get('FUNCTION_APP_NAME') + '/', '')) {
+                                found = true;
+                                delete funcNames[index];
+                                // break;
+                                return false;
+                            }
+                            return true;
+                        });
+                        assert(found);
+                    });
+                });
         });
     });
-  });
-  
-  describe('#deployFunctionLive', function () {
-    this.timeout(120000);
-    it('lists webjobs', function () {
-      var AzureFunctions = require('../../index');
-      var azFunctions = new AzureFunctions(nconf.get('RESOURCE_GROUP_NAME'),
-      	nconf.get('FUNCTION_APP_NAME'),
-      	{
-      		subscriptionId: nconf.get('SUBSCRIPTION_ID'),
-          clientId: nconf.get('CLIENT_ID'),
-          clientSecret: nconf.get('CLIENT_SECRET'),
-          domain: nconf.get('AD_DOMAIN')
-      	});
 
-        return azFunctions.deployFunction('testfunction2', 'module.exports = function (context, data) {\r\n    context.res = {\r\n        body: { greeting: \'Hello \' + data.first + \' \' + data.last + \'!\'}\r\n    };\r\n\r\n    context.done();\r\n};\r\n',
-        [{
-          "type": "http",
-          "direction": "in",
-          "name": "req"
-        }])
-        .then(jobs => {
-          debug('jobs:');
-          debug(jobs);
+    describe('#getFunction-live', function () {
+        this.timeout(10000);
+        it('gets an Azure Function', function () {
+            var AzureFunctions = require('../../index');
+            var azFunctions = new AzureFunctions(nconf.get('RESOURCE_GROUP_NAME'),
+                nconf.get('FUNCTION_APP_NAME'), {
+                    subscriptionId: nconf.get('SUBSCRIPTION_ID'),
+                    clientId: nconf.get('CLIENT_ID'),
+                    clientSecret: nconf.get('CLIENT_SECRET'),
+                    domain: nconf.get('AD_DOMAIN')
+                });
+
+            return azFunctions.getFunction('unittesthttp')
+                .then(func => {
+                    debug(func);
+                    validateFunctionObject(func);
+                    return azFunctions.getFunction('unittesthttp2');
+                })
+                .then(func => {
+                    validateFunctionObject(func);
+                });
         });
     });
-  });
+
+    describe('#deleteFunction-live', function () {
+        this.timeout(30000);
+        it('deletes an Azure Function', function () {
+            var AzureFunctions = require('../../index');
+            var azFunctions = new AzureFunctions(nconf.get('RESOURCE_GROUP_NAME'),
+                nconf.get('FUNCTION_APP_NAME'), {
+                    subscriptionId: nconf.get('SUBSCRIPTION_ID'),
+                    clientId: nconf.get('CLIENT_ID'),
+                    clientSecret: nconf.get('CLIENT_SECRET'),
+                    domain: nconf.get('AD_DOMAIN')
+                });
+
+            return azFunctions.deleteFunction('unittesthttp')
+                .then(func => {
+                    debug(func);
+                    validateFunctionObject(func);
+                    return azFunctions.listFunctions();
+                })
+                .then(functions => {
+                    validateFunctionListing(functions);
+                    assert.equal(functions.length, 1);
+                });
+        });
+    });
 });
