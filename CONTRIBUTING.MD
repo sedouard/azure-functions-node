@@ -23,7 +23,7 @@ After you've forked and clone the repo execute the following to start the tests:
 
 ```
 npm install
-grunt test
+npm install grunt-cli -g
+grunt ci
 ```
 
-These are the same tests that are ran in Appveyor CI. Happy coding!
