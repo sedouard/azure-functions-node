@@ -2,6 +2,7 @@
 /* globals describe, it*/
 var fs = require('fs');
 var nconf = require('nconf');
+var path = require('path');
 var assert = require('assert');
 var debug = require('debug')('azure-functions:test:live:azure-functions');
 var skeemas = require('skeemas');
@@ -10,7 +11,7 @@ var functionSchema = require('../schemas/function');
 var functionListingSchema = require('../schemas/function-listing');
 
 nconf.env().file({
-    file: './test/assets/.config-live.json'
+    file: path.join(__dirname, '../assets/.config.json')
 });
 global.Promise = require('bluebird');
 

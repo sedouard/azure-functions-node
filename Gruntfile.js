@@ -1,36 +1,38 @@
 var grunt = require('grunt');
 require('load-grunt-tasks')(grunt);
 
-var files = ['modules/**/*.js', 'middleware/**/*.js', 'routes/**/*.js', 'models/**/*.js', 'test/**/*.js'];
+var jsFiles = ['modules/**/*.js', 'test/**/*.js'];
 
 grunt.initConfig({
   mochacli: {
       mockTests: {
           options: {
             reporter: 'spec',
-            g: '.*-mock',
+            grep: '.*-mock',
+            recursive: true,
             bail: false
         },
-        all: ['test/modules/*.js', 'test/routes/*.js']
+        all: jsFiles
       },
       liveTests: {
           options: {
             reporter: 'spec',
-            g: '.*-live',
+            grep: '.*-live',
+            recursive: true,
             bail: false
         },
-        all: ['test/modules/*.js', 'test/routes/*.js']
-      },
+        all: jsFiles
+      }
   },
   jshint: {
-      files: files,
+      files: jsFiles,
       options: {
           jshintrc: '.jshintrc'
       }
   },
   jscs: {
       files: {
-          src: files
+          src: jsFiles
       },
       options: {
           config: '.jscsrc',
@@ -40,7 +42,7 @@ grunt.initConfig({
   jsbeautifier: {
       write: {
           files: {
-              src: files
+              src: jsFiles
           },
           options: {
               config: '.beautifyrc'
@@ -49,6 +51,6 @@ grunt.initConfig({
   }
 });
 grunt.registerTask('ci', ['mochacli:mockTests', 'jshint', 'jscs']);
-grunt.registerTask('live', ['mochacli:liveTests', 'jshint', 'jscs']);
+grunt.registerTask('live-test', ['mochacli:liveTests', 'jshint', 'jscs']);
 grunt.registerTask('validate', ['jshint', 'jscs']);
 

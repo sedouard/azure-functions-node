@@ -4,11 +4,13 @@ var nconf = require('nconf');
 var skeemas = require('skeemas');
 var functionCreateSchema = require('../schemas/function-create');
 var debug = require('debug')('azure-functions:test:mocks:azure-arm-resource');
+var path = require('path');
 
 nconf.env().file({
-    file: './test/assets/.config-mock.json'
+    file: path.join(__dirname, '../assets/.config.json')
 });
 var _functionCache = {};
+
 class ResourceManagementClient {
     constructor(credentials, subscriptionId) {
         assert.equal(credentials.constructor.name, 'ApplicationTokenCredentials');
@@ -42,9 +44,8 @@ class ResourceManagementClient {
         assert.equal(httpRequest.constructor.name, 'WebResource');
         var rgRegex = new RegExp('\/subscriptions\/' + nconf.get('SUBSCRIPTION_ID') + '\/resourceGroups\/' + nconf.get('RESOURCE_GROUP_NAME'));
         var functionRegex = new RegExp('\/providers\/Microsoft\.Web\/sites\/' + nconf.get('FUNCTION_APP_NAME') + '\/functions\/');
-        var functionsRegex = /\/providers\/Microsoft\.Web\/sites\/serverlessdemo\/functions/;
-        debug('functionRegex: ' + '\/providers\/Microsoft\.Web\/sites\/' + nconf.get('FUNCTION_APP_NAME') + '\/functions\/');
-        debug(httpRequest.url.match(functionRegex));
+        var functionsRegex = new RegExp('\/providers\/Microsoft\.Web\/sites\/' + nconf.get('FUNCTION_APP_NAME') + '\/functions');
+
         var response = {
             statusCode: 200
         };

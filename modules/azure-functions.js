@@ -1,5 +1,4 @@
 'use strict';
-var util = require('util');
 var debug = require('debug')('azure-functions:azure-functions');
 var msRest = require('ms-rest');
 var WebResource = msRest.WebResource;
@@ -124,6 +123,12 @@ class AzureFunctions {
             });
     }
 
+    /**
+     * Generates the base url for all Azure Functions REST request
+     *
+     * @method
+     * @return {string} The base url for Azure Functions REST requests
+     */
     _buildBaseUrl() {
         var requestUrl = this._rmClient.baseUri + '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}';
         requestUrl = requestUrl.replace('{subscriptionId}', this.subscriptionDetails.subscriptionId);
@@ -131,6 +136,15 @@ class AzureFunctions {
         return requestUrl;
     }
 
+    /**
+     * Performs authenticated call to ARM Api. Lifted from Azure/autorest
+     *
+     * @method
+     * @param {string} requestUrl The full url to make the request call to
+     * @param {string} method The HTTP method
+     * @param {object|Readable} body The request body. Can be a Readable stream as well.
+     * @return {Promise} A promise that resolves when the request completes
+     */
     _performRequest(requestUrl, method, body, apiVersion) {
         if (!method) {
             method = 'GET';
@@ -165,69 +179,21 @@ class AzureFunctions {
 
         httpRequest.url = requestUrl;
         // this logic is mostly from the Azure auto-rest generated code
-        return new Promise((resolve, reject) => {
-            return client.pipeline(httpRequest, function (err, response, responseBody) {
-                debug(err);
-                debug(response);
-                debug(responseBody);
-                var statusCode = response.statusCode;
-                debug(err);
-                debug(response);
-                debug(responseBody);
-                if (statusCode < 200 || statusCode > 299) {
+        return client.pipelineAsync(httpRequest)
+        .spread((response, responseBody) => {
+            var statusCode = response.statusCode;
 
-                    var error = new Error(responseBody);
-                    error.statusCode = response.statusCode;
-                    error.request = msRest.stripRequest(httpRequest);
-                    error.response = msRest.stripResponse(response);
-                    if (responseBody === '') {
-                        responseBody = null;
-                    }
-                    var parsedErrorResponse;
-                    try {
-                        parsedErrorResponse = JSON.parse(responseBody);
-                        if (parsedErrorResponse) {
-                            if (parsedErrorResponse.error) {
-                                parsedErrorResponse = parsedErrorResponse.error;
-                            }
-                            if (parsedErrorResponse.code) {
-                                error.code = parsedErrorResponse.code;
-                            }
-                            if (parsedErrorResponse.message) {
-                                error.message = parsedErrorResponse.message;
-                            }
-                        }
-                        if (parsedErrorResponse !== null && parsedErrorResponse !== undefined) {
-                            var resultMapper = new client.models.CloudError().mapper();
-                            error.body = client.deserialize(resultMapper, parsedErrorResponse, 'error.body');
-                        }
-                    } catch (defaultError) {
-                        error.message = util.format('Error \'%s\' occurred in deserializing the responseBody ' +
-                            '- \'%s\' for the default response.', defaultError.message, responseBody);
-                        return reject(error);
-                    }
-                    return reject(error);
-                }
-                // Create Result
-                var result = null;
-                if (responseBody === '') {
-                    responseBody = null;
-                }
+            if (statusCode < 200 || statusCode > 299) {
+                throw new Error(JSON.parse(responseBody));
+            }
+            // Create Result
+            var result = null;
+            if (responseBody === '') {
+                responseBody = null;
+            }
 
-                if (statusCode === 200) {
-                    var parsedResponse = null;
-                    try {
-                        parsedResponse = JSON.parse(responseBody);
-                        result = JSON.parse(responseBody);
-                    } catch (error) {
-                        var deserializationError = new Error(util.format('Error \'%s\' occurred in deserializing the responseBody - \'%s\'', error, responseBody));
-                        deserializationError.request = msRest.stripRequest(httpRequest);
-                        deserializationError.response = msRest.stripResponse(response);
-                        return reject(deserializationError);
-                    }
-                }
-                return resolve(result);
-            });
+            result = JSON.parse(responseBody);
+            return result;
         });
     }
 }
