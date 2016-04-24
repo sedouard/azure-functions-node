@@ -1,6 +1,7 @@
 'use strict';
 /* globals describe, it, before, after*/
 var fs = require('fs');
+var path = require('path');
 var nconf = require('nconf');
 var assert = require('assert');
 var mockery = require('mockery');
@@ -12,7 +13,7 @@ var functionListingSchema = require('./schemas/function-listing');
 var resourceManagementMock = require('./mocks/azure-arm-resource');
 
 nconf.env().file({
-    file: './test/live/.config-mock.json'
+    file: path.join(__dirname, '/assets/.config-mock.json')
 });
 
 function validateFunctionObject(func) {
