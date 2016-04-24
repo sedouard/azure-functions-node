@@ -3,11 +3,19 @@
 [![Build Status](https://travis-ci.org/sedouard/azure-functions-node.svg?branch=master)](https://travis-ci.org/sedouard/azure-functions-node) [![Code Climate](https://codeclimate.com/github/sedouard/azure-functions-node/badges/gpa.svg)](https://codeclimate.com/github/sedouard/azure-functions-node) [![Test Coverage](https://codeclimate.com/github/sedouard/azure-functions-node/badges/coverage.svg)](https://codeclimate.com/github/sedouard/azure-functions-node/coverage)
 # Azure Functions Node.js Client Library
 
-List, deploy and delete Azure Functions via Node.js.
+List, deploy and delete [Azure Functions](https://azure.microsoft.com/en-us/services/functions/) via Node.js.
 
 ## Getting Setup
 
-First, you'll need to create an Azure Service Principal to authenticate into your Azure account. Checkout [this guide](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/) on how you can set this up.
+Install the module by doing:
+
+```
+npm install azure-functions
+```
+ 
+### Creating an Azure Service Principal
+
+You'll need to create an Azure Service Principal to authenticate into your Azure account. Checkout [this guide](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/) on how you can set this up.
 
 With the Azure CLI you just need to do:
 
@@ -49,7 +57,7 @@ Each api in this SDK returns a Promise.
 Getting a function will return a function object.
 
 ```js
-var AzureFunctions = require('../index');
+var AzureFunctions = require('azure-functions');
 var azFunctions = new AzureFunctions('RESOURCE_GROUP_NAME',
     'FUNCTION_APP_NAME', {
         subscriptionId: 'SUBSCRIPTION_ID',
@@ -103,7 +111,7 @@ return azFunctions.getFunction('unittesthttp')
 Listing functions returns an array of function objects as shown above.
 
 ```js
-var AzureFunctions = require('../index');
+var AzureFunctions = require('azure-functions');
 var azFunctions = new AzureFunctions('RESOURCE_GROUP_NAME',
     'FUNCTION_APP_NAME', {
         subscriptionId: 'SUBSCRIPTION_ID',
@@ -182,7 +190,7 @@ Given a function name and bindings array you can create functions. See the [bing
 You can deploy sizeable function, up to several megabytes big. This is useful if you are compiling your functions into a single file.
 
 ```js
-var AzureFunctions = require('../index');
+var AzureFunctions = require('azure-functions');
 var azFunctions = new AzureFunctions(nconf.get('RESOURCE_GROUP_NAME'),
     nconf.get('FUNCTION_APP_NAME'), {
         subscriptionId: nconf.get('SUBSCRIPTION_ID'),
@@ -236,7 +244,7 @@ return azFunctions.deployFunction('functionname', 'var x = \'foo\'; console.log(
 Deleting a function is very straight-forward.
 
 ```js
-var AzureFunctions = require('../index');
+var AzureFunctions = require('azure-functions');
 var azFunctions = new AzureFunctions(nconf.get('RESOURCE_GROUP_NAME'),
     nconf.get('FUNCTION_APP_NAME'), {
         subscriptionId: nconf.get('SUBSCRIPTION_ID'),
