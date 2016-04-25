@@ -44,7 +44,7 @@ class AzureFunctions {
      * Gets all Azure Functions in the function app
      *
      * @method
-     * @return {array} An array of Function objects.
+     * @return {Promise<Array>} An array of Function objects.
      */
     listFunctions() {
         var requestUrl = this._buildBaseUrl();
@@ -80,7 +80,7 @@ class AzureFunctions {
      * @param {string} name The name of the function to deploy
      * @param {string} functionContent The code that defines the function logic
      * @param {obejct} binding The Azure Function bindings
-     * @return {null}
+     * @return {Promise<null>} A promise that resolves when the function is deployed
      */
     deployFunction(name, functionContent, bindings) {
 
@@ -111,7 +111,7 @@ class AzureFunctions {
      *
      * @method
      * @param {string} name The name of the function to delete
-     * @return {null}
+     * @return {Promise<null>} A promise that resolves when the function is deleted
      */
     deleteFunction(name) {
         var requestUrl = this._buildBaseUrl();
@@ -143,7 +143,7 @@ class AzureFunctions {
      * @param {string} requestUrl The full url to make the request call to
      * @param {string} method The HTTP method
      * @param {object|Readable} body The request body. Can be a Readable stream as well.
-     * @return {Promise} A promise that resolves when the request completes
+     * @return {Promise<response>} A promise that resolves with the response body
      */
     _performRequest(requestUrl, method, body, apiVersion) {
         if (!method) {
