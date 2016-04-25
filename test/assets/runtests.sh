@@ -1,7 +1,7 @@
 #!/bin/bash
 if [ "${TRAVIS_PULL_REQUEST}" = "false" ] 
 then
-	istanbul cover node_modules/grunt/bin/grunt live-test
+	istanbul cover _mocha -- --recursive
     if [ "${?}" = "0" ]
     then
         codeclimate-test-reporter < coverage/lcov.info
