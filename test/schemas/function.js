@@ -70,7 +70,7 @@ module.exports = {
                 test_data_href: {
                     type: 'string',
                     pattern: scmUrlPattern,
-                    required: true
+                    required: false
                 },
                 secrets_file_href: {
                     type: 'string',
