@@ -185,7 +185,7 @@ return azFunctions.listFunctions('unittesthttp')
 
 ### Create a Function
 
-Given a function name and bindings array you can create functions. See the [bingdings section](## Function Bindings) for a list of available bindings.
+Given a function name and bindings array you can create functions. See the [bindings section](## Function Bindings) for a list of available bindings.
 
 You can deploy sizeable function, up to several megabytes big. This is useful if you are compiling your functions into a single file.
 
