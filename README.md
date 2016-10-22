@@ -1,9 +1,9 @@
-![Cover Image](img/azfunctionscover.png)
-
 [![Build Status](https://travis-ci.org/sedouard/azure-functions-node.svg?branch=master)](https://travis-ci.org/sedouard/azure-functions-node) [![Code Climate](https://codeclimate.com/github/sedouard/azure-functions-node/badges/gpa.svg)](https://codeclimate.com/github/sedouard/azure-functions-node) [![Test Coverage](https://codeclimate.com/github/sedouard/azure-functions-node/badges/coverage.svg)](https://codeclimate.com/github/sedouard/azure-functions-node/coverage)
 # Azure Functions Node.js Client Library
 
 List, deploy and delete [Azure Functions](https://azure.microsoft.com/en-us/services/functions/) via Node.js.
+
+**NOTE**: this is not an official Microsoft library. If you're looking for the Azure Functions CLI, see [azure-functions-cli](https://www.npmjs.com/package/azure-functions-cli).
 
 ## Getting Setup
 
