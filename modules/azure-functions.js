@@ -184,7 +184,8 @@ class AzureFunctions {
             var statusCode = response.statusCode;
 
             if (statusCode < 200 || statusCode > 299) {
-                throw new Error(JSON.parse(responseBody));
+                var errorResponse = JSON.parse(responseBody);
+                throw new Error(errorResponse.error.code, errorResponse.error.message);
             }
             // Create Result
             var result = null;
