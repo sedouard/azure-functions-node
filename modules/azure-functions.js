@@ -123,6 +123,44 @@ class AzureFunctions {
             });
     }
 
+     /**
+     * Enables a Function from the Functions App
+     *
+     * @method
+     * @param {string} name The name of the function to Enable
+     * @return {Promise<null>} A promise that resolves when the function is Enables
+     */
+
+    enableFunction(name){
+        var requestUrl = this._buildBaseUrl();
+        requestUrl = requestUrl + '/providers/Microsoft.Web/sites/' + this.functionAppName + '/functions/' + name;
+        return this._performRequest(requestUrl)
+            .then(functionListing => {
+                props = functionListing.properties;
+                props.config.disabled = false;
+                return this._performRequest(requestUrl,'PUT',{properties:props});
+            });
+        }
+
+    /**
+     * Disables a Function from the Functions App
+     *
+     * @method
+     * @param {string} name The name of the function to Disable
+     * @return {Promise<null>} A promise that resolves when the function is disabled
+     */
+
+    disableFunction(name){
+        var requestUrl = this._buildBaseUrl();
+        requestUrl = requestUrl + '/providers/Microsoft.Web/sites/' + this.functionAppName + '/functions/' + name;
+        return this._performRequest(requestUrl)
+            .then(functionListing => {
+                props = functionListing.properties;
+                props.config.disabled = true;
+                return this._performRequest(requestUrl,'PUT',{properties:props});
+            });
+        }
+
     /**
      * Generates the base url for all Azure Functions REST request
      *
