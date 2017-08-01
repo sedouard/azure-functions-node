@@ -259,6 +259,46 @@ return azFunctions.deleteFunction('functionname')
     });
 ```
 
+### Disabling a Function
+Disables an Azure Function
+
+```js
+var AzureFunctions = require('azure-functions');
+var azFunctions = new AzureFunctions(nconf.get('RESOURCE_GROUP_NAME'),
+    nconf.get('FUNCTION_APP_NAME'), {
+        subscriptionId: nconf.get('SUBSCRIPTION_ID'),
+        clientId: nconf.get('CLIENT_ID'),
+        clientSecret: nconf.get('CLIENT_SECRET'),
+        domain: nconf.get('AD_DOMAIN')
+    });
+
+return azFunctions.disableFunction('functionname')
+    .then(() => {
+        console.log('disabled functionname');
+    });
+```
+
+### Enabling a Function
+
+Enables an Azure Function
+
+```js
+var AzureFunctions = require('azure-functions');
+var azFunctions = new AzureFunctions(nconf.get('RESOURCE_GROUP_NAME'),
+    nconf.get('FUNCTION_APP_NAME'), {
+        subscriptionId: nconf.get('SUBSCRIPTION_ID'),
+        clientId: nconf.get('CLIENT_ID'),
+        clientSecret: nconf.get('CLIENT_SECRET'),
+        domain: nconf.get('AD_DOMAIN')
+    });
+
+return azFunctions.enableFunction('functionname')
+    .then(() => {
+        console.log('enabled functionname');
+    });
+```
+
+
 ## Function Triggers
 
 With Azure Functions you can bind a variety of events from Azure services to Azure functions.
