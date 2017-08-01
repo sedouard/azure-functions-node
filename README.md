@@ -260,6 +260,7 @@ return azFunctions.deleteFunction('functionname')
 ```
 
 ### Disabling a Function
+Disables an Azure Function
 
 ```js
 var AzureFunctions = require('azure-functions');
@@ -278,6 +279,8 @@ return azFunctions.disableFunction('functionname')
 ```
 
 ### Enabling a Function
+
+Enables an Azure Function
 
 ```js
 var AzureFunctions = require('azure-functions');
