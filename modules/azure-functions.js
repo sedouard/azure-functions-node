@@ -136,7 +136,7 @@ class AzureFunctions {
         requestUrl = requestUrl + '/providers/Microsoft.Web/sites/' + this.functionAppName + '/functions/' + name;
         return this._performRequest(requestUrl)
             .then(functionListing => {
-                props = functionListing.properties;
+                var props = functionListing.properties;
                 props.config.disabled = false;
                 return this._performRequest(requestUrl,'PUT',{properties:props});
             });
@@ -155,7 +155,7 @@ class AzureFunctions {
         requestUrl = requestUrl + '/providers/Microsoft.Web/sites/' + this.functionAppName + '/functions/' + name;
         return this._performRequest(requestUrl)
             .then(functionListing => {
-                props = functionListing.properties;
+                var props = functionListing.properties;
                 props.config.disabled = true;
                 return this._performRequest(requestUrl,'PUT',{properties:props});
             });
